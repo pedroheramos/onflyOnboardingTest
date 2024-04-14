@@ -58,6 +58,18 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## .env
+Structure
+```
+DB_USERNAME=
+DB_PASSWORD=
+DB_NAME=
+DB_HOST=
+DB_PORT=
+CONSTANT_SECRET_ENCRYPTER=
+```
+
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
