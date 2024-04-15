@@ -1,4 +1,4 @@
-export class GetExpensesMeDto {
+export class GetExpensesDto {
 
     public created_at: string;
 
