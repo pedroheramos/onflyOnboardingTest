@@ -5,10 +5,6 @@ import { Users } from '../entity/user.entity';
 import { Repository } from 'typeorm';
 import { GetUserDto } from '../dto/get-user.dto';
 
-
-// This should be a real class/interface representing a user entity
-export type UserAny = any;
-
 @Injectable()
 export class UsersService {
   constructor(
