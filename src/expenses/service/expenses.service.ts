@@ -5,13 +5,14 @@ import { Expenses } from '../entity/expenses.entity';
 import { CreateExpensesDto } from '../dto/create-expenses.dto';
 import { ExpensesResponseDto } from '../dto/expenses-response.dto';
 import { isBefore } from 'date-fns';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class ExpensesService {
     constructor(
         @Inject('ExpensesRepository') private readonly expensesRepository: Repository<Expenses>,
-        @Inject('UsersRepository') private readonly usersRepository: Repository<Users>
-
+        @Inject('UsersRepository') private readonly usersRepository: Repository<Users>,
+        private readonly mailerService: MailerService
     ) { }
 
     async list(username: string): Promise<ExpensesResponseDto[]> {
@@ -63,6 +64,23 @@ export class ExpensesService {
 
         const expenses = await this.expensesRepository.save(createExpense);
         console.log(expenses)
+
+
+        this.mailerService
+            .sendMail({
+                to: 'pedroheramos@gmail.com', // list of receivers
+                from: 'noreply@nestjs.com', // sender address
+                subject: 'despesa cadastrada ✔', // Subject line
+                text: ' ', // plaintext body
+                html: '<b> </b>', // HTML body content
+            })
+            .then((success) => {
+                console.log(success)
+            })
+            .catch((err) => {
+                console.log(err)
+            });
+            
         return {
             id: expenses.id,
             amount: expenses.amount,
