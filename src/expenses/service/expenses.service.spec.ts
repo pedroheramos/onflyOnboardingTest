@@ -131,7 +131,7 @@ describe('ExpensesService', () => {
       resolve(true)
     }));
 
-    await expect(expensesService.create({description: "expense description", amount: 13.13, userId: 1, dateOccurrence: "2025-04-10"} as CreateExpensesDto))
+    await expect(expensesService.create({description: "expense description", amount: 13.13, userId: 1, dateOccurrence: "2025-10-10"} as CreateExpensesDto))
         .rejects.toEqual(new HttpException('Data não pode ser no futuro.', HttpStatus.BAD_REQUEST))
   });
 
