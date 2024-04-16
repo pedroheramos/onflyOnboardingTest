@@ -1,27 +1,23 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExpensesService } from './expenses.service';
-import { Helper } from '../../app.helper';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Expenses } from '../entity/expenses.entity';
-import { MailerModule, MailerService } from '@nestjs-modules/mailer';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { UsersService } from '../../users/service/users.service';
-import { UsersRepository } from '../../auth/auth.controller.spec';
-import { Users } from '../../users/entity/user.entity';
-
-
-export const ExpensesRepository = jest.fn(() => ({
-  metadata: {
-    columns: [],
-    relations: [],
-  },
-}));
+import {Test, TestingModule} from '@nestjs/testing';
+import {ExpensesService} from './expenses.service';
+import {Helper} from '../../app.helper';
+import {UsersService} from '../../users/service/users.service';
+import {MailerModule, MailerService} from '@nestjs-modules/mailer';
+import {Expenses} from '../entity/expenses.entity';
+import {Column, JoinColumn, OneToOne, Repository} from 'typeorm';
+import {Users} from '../../users/entity/user.entity';
+import {getRepositoryToken} from '@nestjs/typeorm';
+import {ConfigModule, ConfigService} from '@nestjs/config';
+import {HandlebarsAdapter} from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import {CreateExpensesDto} from '../dto/create-expenses.dto';
+import {HttpException, HttpStatus} from '@nestjs/common';
 
 describe('ExpensesService', () => {
-  let service: ExpensesService;
-  let mailerService: MailerService;
+  let expensesService: ExpensesService;
   let usersService: UsersService;
+  let expensesRepository: Repository<Expenses>;
+  let usersRepository: Repository<Users>;
+  let mailerService: MailerService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -57,29 +53,86 @@ describe('ExpensesService', () => {
         ExpensesService,
         {
           provide: getRepositoryToken(Expenses),
-          useClass: ExpensesRepository
+          useValue: {
+            // find: jest.fn().mockResolvedValue(userArray),
+            // findOneBy: jest.fn().mockResolvedValue(oneUser),
+            save: jest.fn().mockResolvedValue({
+              id: 1,
+              created_at: "2024-04-10",
+              date_occurrence: new Date(),
+              description: "Teste",
+              amount: 10.10,
+              userOwnerId: 1
+            } as Expenses),
+            // remove: jest.fn(),
+            // delete: jest.fn(),
+          },
         },
         {
           provide: getRepositoryToken(Users),
-          useClass: UsersRepository
+          useValue: {
+            // find: jest.fn().mockResolvedValue(userArray),
+            findOneBy: (userId: any) => {
+              if (userId.id === 1) {
+                return jest.fn().mockResolvedValue({
+                  id: 1,
+                  created_at: "2024-04-14",
+                  username: "pedro@onfly.com.br",
+                  password: "description test"
+                } as Users)
+              } else {
+                return null
+              }
+            },
+            // save: jest.fn().mockResolvedValue(oneUser),
+            // remove: jest.fn(),
+            // delete: jest.fn(),
+          },
         },
         Helper
       ]
     }).compile();
 
-    service = module.get<ExpensesService>(ExpensesService);
+    expensesService = module.get<ExpensesService>(ExpensesService);
+    mailerService = module.get<MailerService>(MailerService);
     usersService = module.get<UsersService>(UsersService);
-    mailerService = module.get(MailerService);
+    expensesRepository = module.get<Repository<Expenses>>(getRepositoryToken(Expenses));
+    usersRepository = module.get<Repository<Users>>(getRepositoryToken(Users));
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(expensesService).toBeDefined();
+    expect(usersService).toBeDefined();
   });
 
-  it('should create', () => {
-    const result = null;
-    jest.spyOn(usersService, 'findOne').mockImplementation(() => new Promise(function (resolve, reject) {
-      resolve(result)
+  it('should create', async () => {
+
+    jest.spyOn(mailerService, 'sendMail').mockImplementation(() => new Promise(function (resolve, reject) {
+      resolve(true)
     }));
+
+    const resultado = await expensesService.create({description: "expense description", amount: 13.13, userId: 1, dateOccurrence: "2024-04-10"} as CreateExpensesDto)
+    expect(resultado.id).toBe(1)
   });
+
+  it('should not create due to user', async () => {
+
+    jest.spyOn(mailerService, 'sendMail').mockImplementation(() => new Promise(function (resolve, reject) {
+      resolve(true)
+    }));
+
+    await expect(expensesService.create({description: "expense description", amount: 13.13, userId: 2, dateOccurrence: "2024-04-10"} as CreateExpensesDto))
+        .rejects.toEqual(new HttpException('User not found!', HttpStatus.BAD_REQUEST))
+  });
+
+  it('should not create due to date future', async () => {
+
+    jest.spyOn(mailerService, 'sendMail').mockImplementation(() => new Promise(function (resolve, reject) {
+      resolve(true)
+    }));
+
+    await expect(expensesService.create({description: "expense description", amount: 13.13, userId: 1, dateOccurrence: "2025-04-10"} as CreateExpensesDto))
+        .rejects.toEqual(new HttpException('Data não pode ser no futuro.', HttpStatus.BAD_REQUEST))
+  });
+
 });
