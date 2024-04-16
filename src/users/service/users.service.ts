@@ -12,8 +12,16 @@ export class UsersService {
     private readonly helper: Helper
   ) {}
 
+  async find(username: string): Promise<Users[]> {
+    return await this.usersRepository.find({where: {username: username}});
+  }
+
   async findOne(GetUserDto: GetUserDto): Promise<Users | null> {
     return await this.usersRepository.findOne({where: {username: GetUserDto.username}});
+  }
+
+  async findOneBy(id: number): Promise<Users | null> {
+    return await this.usersRepository.findOneBy({id: id});
   }
 
   async list(): Promise<Users[]> {

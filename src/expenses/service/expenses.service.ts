@@ -6,17 +6,18 @@ import { CreateExpensesDto } from '../dto/create-expenses.dto';
 import { ExpensesResponseDto } from '../dto/expenses-response.dto';
 import { isBefore } from 'date-fns';
 import { MailerService } from '@nestjs-modules/mailer';
+import { UsersService } from '../../users/service/users.service';
 
 @Injectable()
 export class ExpensesService {
     constructor(
         @Inject('ExpensesRepository') private readonly expensesRepository: Repository<Expenses>,
-        @Inject('UsersRepository') private readonly usersRepository: Repository<Users>,
-        private readonly mailerService: MailerService
+        private readonly mailerService: MailerService,
+        private readonly usersService: UsersService
     ) { }
 
     async list(username: string): Promise<ExpensesResponseDto[]> {
-        const user = await this.usersRepository.find({ where: { username: username } })
+        const user = await this.usersService.find(username)
         if (user.length == 0)
             return []
         let expenses = await this.expensesRepository.find(
@@ -44,7 +45,7 @@ export class ExpensesService {
 
     async create(createExpensesDto: CreateExpensesDto): Promise<ExpensesResponseDto> {
 
-        const user = await this.usersRepository.findOneBy({ id: createExpensesDto.userId })
+        const user = await this.usersService.findOneBy(createExpensesDto.userId)
         if (!user)
             throw new HttpException('User not found!', HttpStatus.BAD_REQUEST)
 

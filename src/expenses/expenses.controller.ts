@@ -23,7 +23,6 @@ export class ExpensesController {
         const [type, token] = authstring?.split(' ') ?? [];
         const decodedToken = await this.jwtService.decode(token);
         return await this.ExpensesService.list(decodedToken.username);
-        return [decodedToken]
     }
 
 
@@ -33,7 +32,6 @@ export class ExpensesController {
         const [type, token] = authstring?.split(' ') ?? [];
         const decodedToken = await this.jwtService.decode(token);
         return await this.ExpensesService.list(decodedToken.username);
-        return [decodedToken]
     }
 
 }

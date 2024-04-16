@@ -1,14 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExpensesService } from './expenses.service';
-import { UsersRepository } from '../../auth/auth.controller.spec';
 import { Helper } from '../../app.helper';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Users } from '../../users/entity/user.entity';
 import { Expenses } from '../entity/expenses.entity';
 import { MailerModule, MailerService } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../../users/service/users.service';
+import { UsersProviders } from '../../users/service/users.provider';
 
 
 export const ExpensesRepository = jest.fn(() => ({
@@ -20,14 +19,15 @@ export const ExpensesRepository = jest.fn(() => ({
 
 describe('ExpensesService', () => {
   let service: ExpensesService;
-  let mailerService: MailerService
+  let mailerService: MailerService;
+  let usersService: UsersService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         MailerModule.forRootAsync({
           imports: [ConfigModule],
-          useFactory: async(configService: ConfigService) => ({
+          useFactory: async (configService: ConfigService) => ({
             transport: {
               host: configService.get('MAIL_HOST'),
               port: configService.get('MAIL_PORT'),
@@ -38,7 +38,7 @@ describe('ExpensesService', () => {
               },
             },
             defaults: {
-              from:'"nest-modules" <modules@nestjs.com>',
+              from: '"nest-modules" <modules@nestjs.com>',
             },
             template: {
               dir: process.cwd() + '/templates/',
@@ -52,11 +52,9 @@ describe('ExpensesService', () => {
         })
       ],
       providers: [
+        UsersService,
+        ...UsersProviders,
         ExpensesService,
-        {
-          provide: getRepositoryToken(Users),
-          useClass: UsersRepository
-        },
         {
           provide: getRepositoryToken(Expenses),
           useClass: ExpensesRepository
@@ -66,10 +64,18 @@ describe('ExpensesService', () => {
     }).compile();
 
     service = module.get<ExpensesService>(ExpensesService);
+    usersService = module.get<UsersService>(UsersService);
     mailerService = module.get(MailerService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('should create', () => {
+    const result = null;
+    jest.spyOn(usersService, 'findOne').mockImplementation(() => new Promise(function (resolve, reject) {
+      resolve(result)
+    }));
   });
 });
