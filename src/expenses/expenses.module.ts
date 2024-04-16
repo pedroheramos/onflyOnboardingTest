@@ -4,7 +4,6 @@ import { ExpensesService } from './service/expenses.service';
 import { ExpensesProvider } from './service/expenses.provider';
 import { DatabaseModule } from 'src/database/database.module';
 import { Helper } from 'src/app.helper';
-import { UsersProviders } from 'src/users/service/users.provider';
 import { UsersModule } from 'src/users/users.module';
 
 @Module({

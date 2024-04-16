@@ -7,7 +7,8 @@ import { MailerModule, MailerService } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { UsersService } from '../../users/service/users.service';
-import { UsersProviders } from '../../users/service/users.provider';
+import { UsersRepository } from '../../auth/auth.controller.spec';
+import { Users } from '../../users/entity/user.entity';
 
 
 export const ExpensesRepository = jest.fn(() => ({
@@ -53,11 +54,14 @@ describe('ExpensesService', () => {
       ],
       providers: [
         UsersService,
-        ...UsersProviders,
         ExpensesService,
         {
           provide: getRepositoryToken(Expenses),
           useClass: ExpensesRepository
+        },
+        {
+          provide: getRepositoryToken(Users),
+          useClass: UsersRepository
         },
         Helper
       ]
