@@ -1,6 +1,9 @@
-import { IsPositive, IsString, Length, MaxDate } from "class-validator";
+import { IsNumber, IsPositive, IsString, Length, MaxDate } from "class-validator";
 
-export class CreateExpensesDto {
+export class PatchExpensesDto {
+    
+    @IsNumber()
+    id: string;
 
     @IsString()
     @Length(1, 190)

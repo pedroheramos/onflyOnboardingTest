@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Req, Headers, Body, Patch } from '@nestjs/common';
+import { Controller, Post, Get, Req, Headers, Body, Patch, Param } from '@nestjs/common';
 import { ExpensesService } from './service/expenses.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateExpensesDto } from './dto/create-expenses.dto';
+import { PatchExpensesDto } from './dto/patch-expenses.dto';
 
 
 @Controller('expenses')
@@ -25,13 +26,14 @@ export class ExpensesController {
         return await this.ExpensesService.list(decodedToken.username);
     }
 
+    @Patch(':id')
+    async patch(@Param('id') id: number, @Body() PatchExpensesDto: PatchExpensesDto, @Headers('authorization') authorization?: string) {
 
-    @Patch()
-    async patch(@Req() request: Request, @Headers('authorization') authorization?: string) {
         const authstring: string = authorization || '';
         const [type, token] = authstring?.split(' ') ?? [];
         const decodedToken = await this.jwtService.decode(token);
-        return await this.ExpensesService.list(decodedToken.username);
+        
+        return await this.ExpensesService.patch(id, decodedToken.username, PatchExpensesDto);
     }
 
 }

@@ -6,6 +6,7 @@ import { ExpensesResponseDto } from '../dto/expenses-response.dto';
 import { isBefore } from 'date-fns';
 import { MailerService } from '@nestjs-modules/mailer';
 import { UsersService } from '../../users/service/users.service';
+import { PatchExpensesDto } from '../dto/patch-expenses.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -80,7 +81,7 @@ export class ExpensesService {
             .catch((err) => {
                 console.log(err)
             });
-            
+
         return {
             id: expenses.id,
             amount: expenses.amount,
@@ -88,6 +89,42 @@ export class ExpensesService {
             dateOccurrence: expenses.date_occurrence,
             description: expenses.description
         } as ExpensesResponseDto
+    }
+
+    async patch(id: number, username: string, patchExpensesDto: PatchExpensesDto): Promise<any> {
+
+        console.log(id, username, patchExpensesDto)
+
+        const user = await this.usersService.findOneBy(patchExpensesDto.userId)
+        if (!user)
+            throw new HttpException('User not found!', HttpStatus.BAD_REQUEST)
+
+
+        const expense = await this.expensesRepository.findOneBy({id})
+        if (!expense)
+            throw new HttpException('Expense not found!', HttpStatus.BAD_REQUEST)
+
+        const checkDate = patchExpensesDto.dateOccurrence;
+        console.log(checkDate)
+        console.log(typeof checkDate)
+        if (!isBefore(checkDate, new Date()))
+            throw new HttpException('Data não pode ser no futuro.', HttpStatus.BAD_REQUEST)
+
+
+        const patchExpense = {
+            amount: patchExpensesDto.amount,
+            date_occurrence: patchExpensesDto.dateOccurrence,
+            description: patchExpensesDto.description,
+            userOwnerId: patchExpensesDto.userId
+        };
+
+        const patchResult = await this.expensesRepository.update(patchExpensesDto.id, patchExpense);
+        
+        const expenseCb = await this.expensesRepository.findOneBy({id})
+        if (!expenseCb)
+            throw new HttpException('Expense not found!', HttpStatus.BAD_REQUEST)
+
+        return expenseCb
     }
 
 }
