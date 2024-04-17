@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Req, Headers, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Post, Get, Req, Headers, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ExpensesService } from './service/expenses.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateExpensesDto } from './dto/create-expenses.dto';
@@ -35,5 +35,16 @@ export class ExpensesController {
         
         return await this.ExpensesService.patch(id, decodedToken.username, PatchExpensesDto);
     }
+
+    @Delete(':id')
+    async delete(@Param('id') id: number, @Headers('authorization') authorization?: string) {
+
+        const authstring: string = authorization || '';
+        const [type, token] = authstring?.split(' ') ?? [];
+        const decodedToken = await this.jwtService.decode(token);
+        
+        return await this.ExpensesService.delete(id);
+    }
+
 
 }

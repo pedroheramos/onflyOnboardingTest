@@ -127,4 +127,18 @@ export class ExpensesService {
         return expenseCb
     }
 
+
+
+    async delete(id: number): Promise<any> {
+
+        const expense = await this.expensesRepository.findOneBy({id})
+        if (!expense)
+            throw new HttpException('Expense not found!', HttpStatus.BAD_REQUEST)
+
+
+        const deleteResult = await this.expensesRepository.delete(id);
+        
+        return deleteResult
+    }
+
 }
