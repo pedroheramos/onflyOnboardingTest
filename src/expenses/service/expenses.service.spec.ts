@@ -55,7 +55,14 @@ describe('ExpensesService', () => {
           provide: getRepositoryToken(Expenses),
           useValue: {
             // find: jest.fn().mockResolvedValue(userArray),
-            // findOneBy: jest.fn().mockResolvedValue(oneUser),
+            findOneBy: jest.fn().mockResolvedValue({
+              id: 1,
+              created_at: "2024-04-10",
+              date_occurrence: new Date(),
+              description: "Teste",
+              amount: 10.10,
+              userOwnerId: 1
+            } as Expenses),
             save: jest.fn().mockResolvedValue({
               id: 1,
               created_at: "2024-04-10",
@@ -65,7 +72,10 @@ describe('ExpensesService', () => {
               userOwnerId: 1
             } as Expenses),
             // remove: jest.fn(),
-            // delete: jest.fn(),
+            delete: jest.fn().mockResolvedValue({
+              "raw": [],
+              "affected": 1
+          }),
           },
         },
         {
@@ -133,6 +143,25 @@ describe('ExpensesService', () => {
 
     await expect(expensesService.create({description: "expense description", amount: 13.13, userId: 1, dateOccurrence: "2025-10-10"} as CreateExpensesDto))
         .rejects.toEqual(new HttpException('Data não pode ser no futuro.', HttpStatus.BAD_REQUEST))
+  });
+
+
+  it('should delete', async () => {
+
+    jest.spyOn(mailerService, 'sendMail').mockImplementation(() => new Promise(function (resolve, reject) {
+      resolve(true)
+    }));
+
+
+    const itemcreated = await expensesService.create({description: "expense description", amount: 13.13, userId: 1, dateOccurrence: "2024-04-04"} as CreateExpensesDto)
+
+    console.log(itemcreated)
+
+    const deleted = await expensesService.delete(itemcreated.id)
+
+    console.log(deleted);
+
+    expect(deleted).toBeDefined()
   });
 
 });
